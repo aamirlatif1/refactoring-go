@@ -31,7 +31,12 @@ func (suite *StatementGeneratorSuite) TestUnknownTypeInInvoice() {
 		"as-like": {"As You Like It", "comedy"},
 		"othello": {"Othello", "tragedy"},
 	}
-	assert.Panics(suite.T(), func() { statement(invoice, plays) }, "unknown type: sci-fi")
+	assert.Panics(suite.T(), func() {
+		_, err := statement(invoice, plays)
+		if err != nil {
+			return
+		}
+	}, "unknown type: sci-fi")
 }
 
 func (suite *StatementGeneratorSuite) TestPlayIdNotFoundInPerformances() {
