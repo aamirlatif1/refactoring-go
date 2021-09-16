@@ -28,22 +28,10 @@ func (g *generator) generate() (*string, error) {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
 		play, _ := g.plays[perf.PlayID]
-		thisAmount := 0.0
 
-		switch play.PlayType {
-		case "tragedy":
-			thisAmount = 40000.0
-			if perf.Audience > 30 {
-				thisAmount += 1000 * float64(perf.Audience-30)
-			}
-		case "comedy":
-			thisAmount = 30000.0
-			if perf.Audience > 20 {
-				thisAmount += 10000 + 500*float64(perf.Audience-20)
-			}
-			thisAmount += 300 * float64(perf.Audience)
-		default:
-			return nil, errors.New("unknown type: " + play.PlayType)
+		thisAmount, err := g.amountFor(play, perf)
+		if err != nil {
+			return nil, err
 		}
 
 		volumeCredits += Max(perf.Audience-30, 0)
@@ -57,6 +45,26 @@ func (g *generator) generate() (*string, error) {
 	result += fmt.Sprintf("Amount owed is %s\n", ac.FormatMoney(totalAmount/100.0))
 	result += fmt.Sprintf("You earned %d credits\n", volumeCredits)
 	return &result, nil
+}
+
+func (g *generator) amountFor(play Play, perf Performance) (float64, error) {
+	thisAmount := 0.0
+	switch play.PlayType {
+	case "tragedy":
+		thisAmount = 40000.0
+		if perf.Audience > 30 {
+			thisAmount += 1000 * float64(perf.Audience-30)
+		}
+	case "comedy":
+		thisAmount = 30000.0
+		if perf.Audience > 20 {
+			thisAmount += 10000 + 500*float64(perf.Audience-20)
+		}
+		thisAmount += 300 * float64(perf.Audience)
+	default:
+		return 0, errors.New("unknown type: " + play.PlayType)
+	}
+	return thisAmount, nil
 }
 
 func Max(x, y int) int {
