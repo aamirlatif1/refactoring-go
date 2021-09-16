@@ -27,24 +27,27 @@ func (g *generator) generate() (*string, error) {
 		if _, ok := g.plays[perf.PlayID]; !ok {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
-		play, _ := g.plays[perf.PlayID]
-
-		thisAmount, err := g.amountFor(play, perf)
+		thisAmount, err := g.amountFor(g.playFor(perf), perf)
 		if err != nil {
 			return nil, err
 		}
 
 		volumeCredits += Max(perf.Audience-30, 0)
-		if "comedy" == play.PlayType {
+		if "comedy" == g.playFor(perf).PlayType {
 			volumeCredits += perf.Audience / 5
 		}
 
-		result += fmt.Sprintf(" %s: %s (%d seats)\n", play.Name, ac.FormatMoney(thisAmount/100.0), perf.Audience)
+		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, ac.FormatMoney(thisAmount/100.0), perf.Audience)
 		totalAmount += thisAmount
 	}
 	result += fmt.Sprintf("Amount owed is %s\n", ac.FormatMoney(totalAmount/100.0))
 	result += fmt.Sprintf("You earned %d credits\n", volumeCredits)
 	return &result, nil
+}
+
+func (g *generator) playFor(perf Performance) Play {
+	play, _ := g.plays[perf.PlayID]
+	return play
 }
 
 func (g *generator) amountFor(play Play, perf Performance) (float64, error) {
