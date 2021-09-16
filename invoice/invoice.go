@@ -27,7 +27,7 @@ func (g *generator) generate() (*string, error) {
 		if _, ok := g.plays[perf.PlayID]; !ok {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
-		thisAmount, err := g.amountFor(g.playFor(perf), perf)
+		thisAmount, err := g.amountFor(perf)
 		if err != nil {
 			return nil, err
 		}
@@ -50,9 +50,9 @@ func (g *generator) playFor(perf Performance) Play {
 	return play
 }
 
-func (g *generator) amountFor(play Play, perf Performance) (float64, error) {
+func (g *generator) amountFor(perf Performance) (float64, error) {
 	thisAmount := 0.0
-	switch play.PlayType {
+	switch g.playFor(perf).PlayType {
 	case "tragedy":
 		thisAmount = 40000.0
 		if perf.Audience > 30 {
@@ -65,7 +65,7 @@ func (g *generator) amountFor(play Play, perf Performance) (float64, error) {
 		}
 		thisAmount += 300 * float64(perf.Audience)
 	default:
-		return 0, errors.New("unknown type: " + play.PlayType)
+		return 0, errors.New("unknown type: " + g.playFor(perf).PlayType)
 	}
 	return thisAmount, nil
 }
