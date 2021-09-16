@@ -7,17 +7,27 @@ import (
 )
 
 func statement(invoice Invoice, plays map[string]Play) (*string, error) {
+	g := generator{invoice, plays}
+	return g.generate()
+}
+
+type generator struct {
+	invoice Invoice
+	plays   map[string]Play
+}
+
+func (g *generator) generate() (*string, error) {
 	totalAmount := 0.0
 	volumeCredits := 0
-	result := fmt.Sprintf("Statement for %s\n", invoice.Customer)
+	result := fmt.Sprintf("Statement for %s\n", g.invoice.Customer)
 	lc := accounting.LocaleInfo["USD"]
 	ac := accounting.Accounting{Symbol: lc.ComSymbol, Precision: 2, Thousand: lc.ThouSep, Decimal: lc.DecSep}
 
-	for _, perf := range invoice.Performances {
-		if _, ok := plays[perf.PlayID]; !ok {
+	for _, perf := range g.invoice.Performances {
+		if _, ok := g.plays[perf.PlayID]; !ok {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
-		play, _ := plays[perf.PlayID]
+		play, _ := g.plays[perf.PlayID]
 		thisAmount := 0.0
 
 		switch play.PlayType {
