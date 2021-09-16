@@ -30,14 +30,17 @@ func (g *generator) generate() (*string, error) {
 		totalAmount += g.amountFor(perf)
 	}
 
+	result += fmt.Sprintf("Amount owed is %s\n", g.usd(totalAmount))
+	result += fmt.Sprintf("You earned %d credits\n", g.totalVolumeCredits())
+	return &result, nil
+}
+
+func (g *generator) totalVolumeCredits() int {
 	volumeCredits := 0
 	for _, perf := range g.invoice.Performances {
 		volumeCredits += g.volumeCreditFor(perf)
 	}
-
-	result += fmt.Sprintf("Amount owed is %s\n", g.usd(totalAmount))
-	result += fmt.Sprintf("You earned %d credits\n", volumeCredits)
-	return &result, nil
+	return volumeCredits
 }
 
 func (g *generator) usd(totalAmount float64) string {
