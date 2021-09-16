@@ -18,18 +18,23 @@ type generator struct {
 
 func (g *generator) generate() (*string, error) {
 	totalAmount := 0.0
-	volumeCredits := 0
+
 	result := fmt.Sprintf("Statement for %s\n", g.invoice.Customer)
 
 	for _, perf := range g.invoice.Performances {
 		if _, ok := g.plays[perf.PlayID]; !ok {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
-		volumeCredits += g.volumeCreditFor(perf)
 
 		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, g.usd(g.amountFor(perf)), perf.Audience)
 		totalAmount += g.amountFor(perf)
 	}
+
+	volumeCredits := 0
+	for _, perf := range g.invoice.Performances {
+		volumeCredits += g.volumeCreditFor(perf)
+	}
+
 	result += fmt.Sprintf("Amount owed is %s\n", g.usd(totalAmount))
 	result += fmt.Sprintf("You earned %d credits\n", volumeCredits)
 	return &result, nil
