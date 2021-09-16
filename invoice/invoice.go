@@ -20,8 +20,6 @@ func (g *generator) generate() (*string, error) {
 	totalAmount := 0.0
 	volumeCredits := 0
 	result := fmt.Sprintf("Statement for %s\n", g.invoice.Customer)
-	lc := accounting.LocaleInfo["USD"]
-	ac := accounting.Accounting{Symbol: lc.ComSymbol, Precision: 2, Thousand: lc.ThouSep, Decimal: lc.DecSep}
 
 	for _, perf := range g.invoice.Performances {
 		if _, ok := g.plays[perf.PlayID]; !ok {
@@ -29,20 +27,26 @@ func (g *generator) generate() (*string, error) {
 		}
 		volumeCredits += g.volumeCreditFor(perf)
 
-		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, ac.FormatMoney(g.amountFor(perf)/100.0), perf.Audience)
+		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, g.usd(g.amountFor(perf)), perf.Audience)
 		totalAmount += g.amountFor(perf)
 	}
-	result += fmt.Sprintf("Amount owed is %s\n", ac.FormatMoney(totalAmount/100.0))
+	result += fmt.Sprintf("Amount owed is %s\n", g.usd(totalAmount))
 	result += fmt.Sprintf("You earned %d credits\n", volumeCredits)
 	return &result, nil
 }
 
+func (g *generator) usd(totalAmount float64) string {
+	lc := accounting.LocaleInfo["USD"]
+	ac := accounting.Accounting{Symbol: lc.ComSymbol, Precision: 2, Thousand: lc.ThouSep, Decimal: lc.DecSep}
+	return ac.FormatMoney(totalAmount / 100.0)
+}
+
 func (g *generator) volumeCreditFor(perf Performance) int {
-	vc := Max(perf.Audience-30, 0)
+	result := Max(perf.Audience-30, 0)
 	if "comedy" == g.playFor(perf).PlayType {
-		vc += perf.Audience / 5
+		result += perf.Audience / 5
 	}
-	return vc
+	return result
 }
 
 func (g *generator) playFor(perf Performance) Play {
