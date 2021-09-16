@@ -17,7 +17,6 @@ type generator struct {
 }
 
 func (g *generator) generate() (*string, error) {
-	totalAmount := 0.0
 
 	result := fmt.Sprintf("Statement for %s\n", g.invoice.Customer)
 
@@ -25,22 +24,28 @@ func (g *generator) generate() (*string, error) {
 		if _, ok := g.plays[perf.PlayID]; !ok {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
-
 		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, g.usd(g.amountFor(perf)), perf.Audience)
-		totalAmount += g.amountFor(perf)
 	}
 
-	result += fmt.Sprintf("Amount owed is %s\n", g.usd(totalAmount))
+	result += fmt.Sprintf("Amount owed is %s\n", g.usd(g.totalAmount()))
 	result += fmt.Sprintf("You earned %d credits\n", g.totalVolumeCredits())
 	return &result, nil
 }
 
-func (g *generator) totalVolumeCredits() int {
-	volumeCredits := 0
+func (g *generator) totalAmount() float64 {
+	result := 0.0
 	for _, perf := range g.invoice.Performances {
-		volumeCredits += g.volumeCreditFor(perf)
+		result += g.amountFor(perf)
 	}
-	return volumeCredits
+	return result
+}
+
+func (g *generator) totalVolumeCredits() int {
+	result := 0
+	for _, perf := range g.invoice.Performances {
+		result += g.volumeCreditFor(perf)
+	}
+	return result
 }
 
 func (g *generator) usd(totalAmount float64) string {
