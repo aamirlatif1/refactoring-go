@@ -27,22 +27,22 @@ func (g *generator) generate() (*string, error) {
 		if _, ok := g.plays[perf.PlayID]; !ok {
 			return nil, errors.New("unknown type: " + perf.PlayID)
 		}
-		thisAmount, err := g.amountFor(perf)
-		if err != nil {
-			return nil, err
-		}
+		volumeCredits += g.volumeCreditFor(perf)
 
-		volumeCredits += Max(perf.Audience-30, 0)
-		if "comedy" == g.playFor(perf).PlayType {
-			volumeCredits += perf.Audience / 5
-		}
-
-		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, ac.FormatMoney(thisAmount/100.0), perf.Audience)
-		totalAmount += thisAmount
+		result += fmt.Sprintf(" %s: %s (%d seats)\n", g.playFor(perf).Name, ac.FormatMoney(g.amountFor(perf)/100.0), perf.Audience)
+		totalAmount += g.amountFor(perf)
 	}
 	result += fmt.Sprintf("Amount owed is %s\n", ac.FormatMoney(totalAmount/100.0))
 	result += fmt.Sprintf("You earned %d credits\n", volumeCredits)
 	return &result, nil
+}
+
+func (g *generator) volumeCreditFor(perf Performance) int {
+	vc := Max(perf.Audience-30, 0)
+	if "comedy" == g.playFor(perf).PlayType {
+		vc += perf.Audience / 5
+	}
+	return vc
 }
 
 func (g *generator) playFor(perf Performance) Play {
@@ -50,24 +50,24 @@ func (g *generator) playFor(perf Performance) Play {
 	return play
 }
 
-func (g *generator) amountFor(perf Performance) (float64, error) {
-	thisAmount := 0.0
+func (g *generator) amountFor(perf Performance) float64 {
+	amount := 0.0
 	switch g.playFor(perf).PlayType {
 	case "tragedy":
-		thisAmount = 40000.0
+		amount = 40000.0
 		if perf.Audience > 30 {
-			thisAmount += 1000 * float64(perf.Audience-30)
+			amount += 1000 * float64(perf.Audience-30)
 		}
 	case "comedy":
-		thisAmount = 30000.0
+		amount = 30000.0
 		if perf.Audience > 20 {
-			thisAmount += 10000 + 500*float64(perf.Audience-20)
+			amount += 10000 + 500*float64(perf.Audience-20)
 		}
-		thisAmount += 300 * float64(perf.Audience)
+		amount += 300 * float64(perf.Audience)
 	default:
-		return 0, errors.New("unknown type: " + g.playFor(perf).PlayType)
+		panic("unknown type: " + g.playFor(perf).PlayType)
 	}
-	return thisAmount, nil
+	return amount
 }
 
 func Max(x, y int) int {
