@@ -32,10 +32,7 @@ func (suite *StatementGeneratorSuite) TestUnknownTypeInInvoice() {
 		"othello": {"Othello", "tragedy"},
 	}
 	assert.Panics(suite.T(), func() {
-		_, err := plainStatement(invoice, plays)
-		if err != nil {
-			return
-		}
+		plainStatement(invoice, plays)
 	}, "unknown type: sci-fi")
 }
 
@@ -53,8 +50,9 @@ func (suite *StatementGeneratorSuite) TestPlayIdNotFoundInPerformances() {
 		"as-like": {"As You Like It", "comedy"},
 		"othello": {"Othello", "tragedy"},
 	}
-	_, err := plainStatement(invoice, plays)
-	assert.EqualError(suite.T(), err, "unknown type: hamlet2")
+	assert.Panics(suite.T(), func() {
+		plainStatement(invoice, plays)
+	}, "unknown play: hamlet2")
 }
 
 func (suite *StatementGeneratorSuite) TestGenerateStatementSuccess() {
@@ -72,7 +70,7 @@ func (suite *StatementGeneratorSuite) TestGenerateStatementSuccess() {
 		"othello": {"Othello", "tragedy"},
 	}
 
-	actual, err := plainStatement(invoice, plays)
+	actual := plainStatement(invoice, plays)
 
 	expected := "Statement for BigCo\n" +
 		" Hamlet: $650.00 (55 seats)\n" +
@@ -81,6 +79,5 @@ func (suite *StatementGeneratorSuite) TestGenerateStatementSuccess() {
 		"Amount owed is $1,730.00\n" +
 		"You earned 47 credits\n"
 
-	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expected, actual)
 }
